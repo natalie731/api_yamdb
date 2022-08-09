@@ -3,6 +3,9 @@ from django.db import models
 
 
 class User(AbstractUser):
+    """Расширенная модель User. Добавлены роли и пользовательские поля.
+    Переопределены стандартные поля.
+    """
     USER = 1
     MODERATOR = 2
     ADMIN = 3
