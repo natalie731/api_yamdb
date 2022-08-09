@@ -18,18 +18,18 @@ class User(AbstractUser):
         max_length=150,
         blank=True,
     )
+    email = models.EmailField(
+        'email',
+        blank=False,
+        unique=True,
+    )
     role = models.PositiveSmallIntegerField(
         'Права пользователя',
         choices=ROLE_CHOICES,
         default=USER,
+        blank=False,
     )
     bio = models.TextField(
         'Биография',
         blank=True,
     )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['email', 'username'],
-                name='Unique_user')]
