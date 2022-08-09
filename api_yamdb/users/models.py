@@ -5,12 +5,31 @@ from django.db import models
 class User(AbstractUser):
     USER = 1
     MODERATOR = 2
-    ADMIN =3
+    ADMIN = 3
 
     ROLE_CHOICES = (
-        (USER, 'Пользователь'),
-        (MODERATOR, 'Модератор'),
-        (ADMIN, 'Администратор'),
+        (USER, 'user'),
+        (MODERATOR, 'moderator'),
+        (ADMIN, 'admin'),
     )
 
-    role = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, blank=True, null=True)
+    first_name = models.CharField(
+        'Имя пользователя',
+        max_length=150,
+        blank=True,
+    )
+    role = models.PositiveSmallIntegerField(
+        'Права пользователя',
+        choices=ROLE_CHOICES,
+        default=USER,
+    )
+    bio = models.TextField(
+        'Биография',
+        blank=True,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['email', 'username'],
+                name='Unique_user')]
