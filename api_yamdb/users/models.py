@@ -1,3 +1,4 @@
+from sqlite3 import register_adapter
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -37,3 +38,4 @@ class User(AbstractUser):
         blank=True,
     )
     is_active = models.BooleanField(default=False)
+    register_date = models.DateTimeField(auto_now_add=True)
