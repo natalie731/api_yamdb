@@ -1,7 +1,4 @@
-#from base64 import encode
-#from django.core.mail import send_mail
 from rest_framework import filters, mixins, viewsets
-
 from users.models import User
 from reviews.models import Category, Genre, Title
 from .serializers import CategorySerializer, GenreSerializer, TitleListSerializer, TitleCreateSerializer, UserSerializer
@@ -31,6 +28,7 @@ class UserViewSet(CreateUserViewSet, viewsets.GenericViewSet):
         #        fail_silently=False, # Сообщать об ошибках («молчать ли об ошибках?»)
         #    )
         #except Exception('')
+
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
