@@ -22,7 +22,7 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
 
 
-class UserSerializer(serializers.ModelSerializer):
+class AuthSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('username', 'email',)
@@ -35,6 +35,12 @@ class UserSerializer(serializers.ModelSerializer):
             )
         return data
 
+
+
+class TokenSerializer(serializers.Serializer):
+
+    username = serializers.CharField()
+    confirmation_code = serializers.CharField()
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -89,3 +95,4 @@ class TitleListSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year',
                   'description', 'genre', 'category')
         model = Title
+
