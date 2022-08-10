@@ -1,5 +1,3 @@
-#from base64 import encode
-#from django.core.mail import send_mail
 from rest_framework import mixins, viewsets
 
 from users.models import User
@@ -29,4 +27,5 @@ class UserViewSet(CreateUserViewSet, viewsets.GenericViewSet):
         #        fail_silently=False, # Сообщать об ошибках («молчать ли об ошибках?»)
         #    )
         #except Exception('')
+
 
