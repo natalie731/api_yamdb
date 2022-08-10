@@ -36,4 +36,4 @@ class User(AbstractUser):
         'Биография',
         blank=True,
     )
-    confirmation_code = models.TextField()
+    is_active = models.BooleanField(default=False)
