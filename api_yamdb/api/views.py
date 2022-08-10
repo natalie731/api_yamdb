@@ -1,13 +1,19 @@
+
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import BadHeaderError, send_mail
 from django.db import DatabaseError, transaction
-from rest_framework import status
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import User
+from rest_framework import filters, mixins, viewsets, status
 
-from .serializers import AuthSerializer, TokenSerializer
+from reviews.models import Category, Genre, Title
+from .serializers import CategorySerializer, GenreSerializer, TitleListSerializer, TitleCreateSerializer, UserSerializer, AuthSerializer, TokenSerializer
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
 
 FROM_EMAIL = 'from@example.com'
 
@@ -95,3 +101,49 @@ class TokenView(APIView):
                 'message': 'Пользователь не найден.'
             }, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class TitlesViewSet(viewsets.ModelViewSet):
+    """
+    Предоставляет CRUD-действия для произведений
+    """
+    queryset = Title.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    filterset_fields = (
+        'category',
+        'genre',
+        'name',
+        'year',
+    )
+    #permission_classes = [IsAuthenticatedOrReadOnly, Админ или только чтение]
+    pagination_class = PageNumberPagination
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'update',):
+            return TitleCreateSerializer
+        return TitleListSerializer
+
+
+class CategoryViewSet(viewsets.CreateListDestroyViewSet):
+    """
+    Возвращает список, создает новые и удаляет существующие категории
+    """
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = PageNumberPagination
+    #permission_classes = [Админ или только чтение]
+    search_fields = ['name']
+    lookup_field = 'slug'
+
+
+class GenreViewSet(viewsets.CreateListDestroyViewSet):
+    """
+    Возвращает список, создает новые и удаляет существующие жанры
+    """
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    pagination_class = PageNumberPagination
+    #permission_classes = [Админ или только чтение]
+    search_fields = ['name']
+    lookup_field = 'slug'
