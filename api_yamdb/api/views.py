@@ -11,12 +11,14 @@ from reviews.models import Category, Genre, Title
 from settings import USER, FROM_EMAIL
 from .serializers import (AuthSerializer, CategorySerializer, GenreSerializer,
                           TitleCreateSerializer, TitleListSerializer,
-                          TokenSerializer)
-from users.models import User
+                          TokenSerializer, UserSerializer)
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 def get_tokens_for_user(user):
-    """Выдает токен."""
+    """Генерация токена."""
     refresh = RefreshToken.for_user(user)
     return {
         'token': str(refresh.access_token),
@@ -27,7 +29,6 @@ class AuthViewSet(APIView):
     """
     Регистрация пользователя.
     """
-
     def post(self, request):
         serializer = AuthSerializer(data=request.data)
         url_point = request.build_absolute_uri('/api/v1/auth/token/')
@@ -67,9 +68,8 @@ class AuthViewSet(APIView):
 
 class TokenViewSet(APIView):
     """
-    Получеине токена.
+    Получение токена.
     """
-
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
         if serializer.is_valid():
@@ -99,6 +99,16 @@ class TokenViewSet(APIView):
                 'message': 'Пользователь не найден.'
             }, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    Предоставляет CRUD-действия для пользователей.
+    """
+    queryset = User.objects.filter(is_active=True)
+    serializer_class = UserSerializer
+    pagination_class = PageNumberPagination
+    search_fields = ['username',]
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
