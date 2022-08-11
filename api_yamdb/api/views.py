@@ -1,4 +1,4 @@
-from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
 from django.core.mail import BadHeaderError, send_mail
 from django.db import DatabaseError, transaction
 from rest_framework import filters, status, viewsets
@@ -6,13 +6,13 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Category, Genre, Title
 
-from settings import USER, FROM_EMAIL
+from .permissions import AdminOrSuperUserOnly
+from reviews.models import Category, Genre, Title
+from settings import FROM_EMAIL
 from .serializers import (AuthSerializer, CategorySerializer, GenreSerializer,
                           TitleCreateSerializer, TitleListSerializer,
                           TokenSerializer, UserSerializer)
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -35,26 +35,24 @@ class AuthViewSet(APIView):
         if serializer.is_valid():
             try:
                 with transaction.atomic():
-                    serializer.save(is_active=False, role=USER)
+                    serializer.save(is_active=False)
             except DatabaseError:
                 return Response({
                     'message': 'Что-то пошло не так, повторите регистрацию.'
                 }, status=status.HTTP_400_BAD_REQUEST)
+            username = serializer.validated_data['username']
+            email = serializer.validated_data['email']
+            user = User.objects.get(username=username)
 
-            confirmation_code = (
-                default_token_generator.make_token(User.objects.get(
-                    username=serializer.validated_data['username']),
-                )
-            )
             try:
                 send_mail(
                     'Получение токена на проекте YaMDB',
                     f'{serializer.validated_data["username"]}, '
                     f'для получения токена пройдите по ссылке {url_point}. '
-                    f'и введите временный пароль: {confirmation_code}. '
-                    'Срок действия пароля 1 день.',
+                    f'и введите проверочный код: {user.confirmation_code}. '
+                    'Срок действия кода 1 день.',
                     FROM_EMAIL,
-                    [serializer.validated_data['email']],
+                    [email],
                 )
             except BadHeaderError:
                 return Response({
@@ -78,15 +76,7 @@ class TokenViewSet(APIView):
             if User.objects.filter(username=valid_username).exists():
                 user = User.objects.get(username=valid_username)
 
-                if default_token_generator.check_token(
-                    user=user,
-                    token=valid_code
-                ):
-                    # if user.is_active:
-                    #     return Response({
-                    #         'message': 'Токен уже выдан.'
-                    #     }, status=status.HTTP_400_BAD_REQUEST)
-
+                if user.get_confirmation_code() == valid_code:
                     User.objects.filter(username=user).update(is_active=True)
                     return Response(get_tokens_for_user(user),
                                     status=status.HTTP_200_OK)
@@ -107,8 +97,12 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
+    permission_classes = (AdminOrSuperUserOnly,)
     pagination_class = PageNumberPagination
-    search_fields = ['username',]
+    search_fields = ('username',)
+
+    # def perform_create(self, request):
+    #     pass
 
 
 class TitlesViewSet(viewsets.ModelViewSet):

@@ -35,19 +35,22 @@ class AuthSerializer(serializers.ModelSerializer):
 
 
 class TokenSerializer(serializers.Serializer):
-
     username = serializers.CharField()
     confirmation_code = serializers.CharField()
 
 
 class UserSerializer(AuthSerializer):
-
+    # username = serializers.RegexField('^[\w.@+-]+\z')
     class Meta:
         model = User
         fields = ('username', 'email',
                   'first_name', 'last_name',
                   'bio', 'role',)
 
+    # def validate(self, data):
+    #     if data['username'] > data['finish']:
+    #         raise serializers.ValidationError("finish must occur after start")
+    #     return data
 
 
 class CategorySerializer(serializers.ModelSerializer):
