@@ -1,19 +1,19 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from settings import ADMIN, MODERATOR, USER
+
 
 class User(AbstractUser):
-    """Расширенная модель User. Добавлены роли и пользовательские поля.
+    """Расширенная модель User.
+    Добавлены роли и пользовательские поля.
     Переопределены стандартные поля.
     """
-    USER = 1
-    MODERATOR = 2
-    ADMIN = 3
 
     ROLE_CHOICES = (
-        (USER, 'user'),
-        (MODERATOR, 'moderator'),
-        (ADMIN, 'admin'),
+        (ADMIN, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (USER, 'Администратор'),
     )
 
     first_name = models.CharField(
@@ -26,10 +26,11 @@ class User(AbstractUser):
         blank=False,
         unique=True,
     )
-    role = models.PositiveSmallIntegerField(
+    role = models.CharField(
         'Права пользователя',
+        max_length=10,
         choices=ROLE_CHOICES,
-        default=USER,
+        default=ADMIN,
         blank=False,
     )
     bio = models.TextField(

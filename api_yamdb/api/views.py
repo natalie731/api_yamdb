@@ -1,21 +1,18 @@
-
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import BadHeaderError, send_mail
 from django.db import DatabaseError, transaction
-
+from rest_framework import filters, status, viewsets
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from users.models import User
-from rest_framework import filters, mixins, viewsets, status
-
 from reviews.models import Category, Genre, Title
-from .serializers import CategorySerializer, GenreSerializer, TitleListSerializer, TitleCreateSerializer, UserSerializer, AuthSerializer, TokenSerializer
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-
-FROM_EMAIL = 'from@example.com'
+from settings import USER, FROM_EMAIL
+from .serializers import (AuthSerializer, CategorySerializer, GenreSerializer,
+                          TitleCreateSerializer, TitleListSerializer,
+                          TokenSerializer)
+from users.models import User
 
 
 def get_tokens_for_user(user):
@@ -27,7 +24,9 @@ def get_tokens_for_user(user):
 
 
 class AuthViewSet(APIView):
-    """Регистрация пользователя."""
+    """
+    Регистрация пользователя.
+    """
 
     def post(self, request):
         serializer = AuthSerializer(data=request.data)
@@ -35,18 +34,15 @@ class AuthViewSet(APIView):
         if serializer.is_valid():
             try:
                 with transaction.atomic():
-                    serializer.save(is_active=False)
+                    serializer.save(is_active=False, role=USER)
             except DatabaseError:
                 return Response({
                     'message': 'Что-то пошло не так, повторите регистрацию.'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             confirmation_code = (
-                default_token_generator._make_token_with_timestamp(
-                    User.objects.get(
-                        username=serializer.validated_data['username']
-                    ),
-                    3 * 24 * 60 * 60
+                default_token_generator.make_token(User.objects.get(
+                    username=serializer.validated_data['username']),
                 )
             )
             try:
@@ -55,7 +51,7 @@ class AuthViewSet(APIView):
                     f'{serializer.validated_data["username"]}, '
                     f'для получения токена пройдите по ссылке {url_point}. '
                     f'и введите временный пароль: {confirmation_code}. '
-                    'Срок действия пароля 3 дня.',
+                    'Срок действия пароля 1 день.',
                     FROM_EMAIL,
                     [serializer.validated_data['email']],
                 )
@@ -69,8 +65,10 @@ class AuthViewSet(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class TokenView(APIView):
-    """Получеине токена."""
+class TokenViewSet(APIView):
+    """
+    Получеине токена.
+    """
 
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
@@ -84,10 +82,10 @@ class TokenView(APIView):
                     user=user,
                     token=valid_code
                 ):
-                    if user.is_active:
-                        return Response({
-                            'message': 'Токен уже выдан.'
-                        }, status=status.HTTP_400_BAD_REQUEST)
+                    # if user.is_active:
+                    #     return Response({
+                    #         'message': 'Токен уже выдан.'
+                    #     }, status=status.HTTP_400_BAD_REQUEST)
 
                     User.objects.filter(username=user).update(is_active=True)
                     return Response(get_tokens_for_user(user),
@@ -103,7 +101,6 @@ class TokenView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class TitlesViewSet(viewsets.ModelViewSet):
     """
     Предоставляет CRUD-действия для произведений
@@ -116,7 +113,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
         'name',
         'year',
     )
-    #permission_classes = [IsAuthenticatedOrReadOnly, Админ или только чтение]
+    # permission_classes = [IsAuthenticatedOrReadOnly, Админ или только чтение]
     pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
@@ -125,25 +122,33 @@ class TitlesViewSet(viewsets.ModelViewSet):
         return TitleListSerializer
 
 
-class CategoryViewSet(viewsets.CreateListDestroyViewSet):
+class CategoryViewSet(viewsets.ModelViewSet):
     """
     Возвращает список, создает новые и удаляет существующие категории
     """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = PageNumberPagination
-    #permission_classes = [Админ или только чтение]
+    # permission_classes = [Админ или только чтение]
     search_fields = ['name']
     lookup_field = 'slug'
 
 
-class GenreViewSet(viewsets.CreateListDestroyViewSet):
+class GenreViewSet(viewsets.ModelViewSet):
     """
     Возвращает список, создает новые и удаляет существующие жанры
     """
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     pagination_class = PageNumberPagination
-    #permission_classes = [Админ или только чтение]
+    # permission_classes = [Админ или только чтение]
     search_fields = ['name']
     lookup_field = 'slug'
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    pass
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    pass

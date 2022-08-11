@@ -1,13 +1,10 @@
 from django.urls import include, path
+from rest_framework import routers
 
-from rest_framework import DefaultRouter
-
-
-from .views import GenreViewSet, CategoryViewSet, TitlesViewSet, UserViewSet, CommentViewSet, ReviewViewSet, AuthViewSet, TokenView
-
+from .views import (AuthViewSet, CategoryViewSet, CommentViewSet, GenreViewSet,
+                    ReviewViewSet, TitlesViewSet, TokenViewSet)
 
 router_v1 = routers.DefaultRouter()
-router_v1.register('auth/signup', UserViewSet)
 router_v1.register(r'categories', CategoryViewSet, basename='Category')
 router_v1.register(r'genres', GenreViewSet, basename='Genre')
 router_v1.register(r'titles', TitlesViewSet, basename='Title')
@@ -17,10 +14,11 @@ router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet, basename='comments'
 )
+router_v1.register('users', CategoryViewSet)  # остановилась тут. Заглушка вьюсет
 
 auth_patterns = [
     path('signup/', AuthViewSet.as_view()),
-    path('token/', TokenView.as_view()),
+    path('token/', TokenViewSet.as_view()),
 ]
 
 urlpatterns = [
