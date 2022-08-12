@@ -2,12 +2,13 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from reviews.models import Category, Genre, Title
-from .permissions import AdminOrSuperUserOnly
+from .permissions import AdminOrSuperUserOnly, AdminOrReadOnly
 from .serializers import (AuthSerializer, CategorySerializer, GenreSerializer,
                           TitleCreateSerializer, TitleListSerializer,
                           TokenSerializer, UserSerializer)
@@ -88,11 +89,11 @@ class TitlesViewSet(viewsets.ModelViewSet):
         'name',
         'year',
     )
-    # permission_classes = [IsAuthenticatedOrReadOnly, Админ или только чтение]
+    permission_classes = [AdminOrReadOnly | IsAuthenticatedOrReadOnly]
     pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
-        if self.action in ('create', 'update',):
+        if self.action in ('create', 'update', 'partial_update'):
             return TitleCreateSerializer
         return TitleListSerializer
 
@@ -104,7 +105,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = PageNumberPagination
-    # permission_classes = [Админ или только чтение]
+    permission_classes = [AdminOrReadOnly]
     search_fields = ['name']
     lookup_field = 'slug'
 
@@ -116,7 +117,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     pagination_class = PageNumberPagination
-    # permission_classes = [Админ или только чтение]
+    permission_classes = [AdminOrReadOnly]
     search_fields = ['name']
     lookup_field = 'slug'
 
