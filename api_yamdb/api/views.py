@@ -1,8 +1,9 @@
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -11,7 +12,8 @@ from .permissions import AdminOrSuperUserOnly
 from .serializers import (AuthSerializer, CategorySerializer, GenreSerializer,
                           TitleCreateSerializer, TitleListSerializer,
                           TokenSerializer, UserSerializer)
-from .utils import get_tokens_for_user, new_user_get_confirmation_code_and_email
+from .utils import (get_tokens_for_user,
+                    new_user_get_confirmation_code_and_email)
 
 User = get_user_model()
 
@@ -24,7 +26,9 @@ class AuthViewSet(APIView):
         serializer = AuthSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(is_active=False)
-            user = User.objects.get(username=serializer.validated_data['username'])
+            user = User.objects.get(
+                username=serializer.validated_data['username']
+            )
             new_user_get_confirmation_code_and_email(user)
             return Response(serializer.validated_data,
                             status=status.HTTP_200_OK)
@@ -69,11 +73,35 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (AdminOrSuperUserOnly,)
     pagination_class = PageNumberPagination
     search_fields = ('username',)
+    lookup_field = 'username'
 
     def perform_create(self, serializer):
+        """Переопределяем создание пользователя. Выдаем токен.
+        """
         serializer.save()
         user = User.objects.get(username=serializer.validated_data['username'])
         get_tokens_for_user(user)
+
+    @action(methods=['GET', 'PATCH'], detail=False,
+            permission_classes=[IsAuthenticated])
+    def me(self, request):
+        """Добавляем пользовательскую страницу,
+        которую не генерирует роутер.
+        """
+        user = self.request.user
+        serializer = self.get_serializer(user)
+        if self.request.method == 'PATCH':
+            serializer = self.get_serializer(user,
+                                             data=request.data,
+                                             partial=True)
+            if serializer.is_valid():
+                serializer.save(role=user.role)
+                return Response(serializer.data,
+                                status=status.HTTP_200_OK)
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK)
 
 
 class TitlesViewSet(viewsets.ModelViewSet):

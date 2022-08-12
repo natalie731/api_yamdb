@@ -13,6 +13,10 @@ class UserAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
     def save_model(self, request, obj, form, change):
+        """
+        Переопределен метод создания пользователя через админку.
+        Добавлена выдача токена.
+        """
         obj.save()
         get_tokens_for_user(obj)
 

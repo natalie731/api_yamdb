@@ -17,7 +17,7 @@ def get_tokens_for_user(user):
 
 def new_user_get_confirmation_code_and_email(user):
     """Получение проверочного кода и email."""
-    url_point = '/api/v1/auth/token/'  # как чисто достать URL
+    url_point = '.../api/v1/auth/token/'  # как чисто достать URL
     confirmation_code = default_token_generator.make_token(user)
     try:
         send_mail(
