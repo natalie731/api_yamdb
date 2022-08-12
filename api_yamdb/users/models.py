@@ -1,5 +1,3 @@
-from pickle import TRUE
-from uuid import uuid4
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -39,14 +37,9 @@ class User(AbstractUser):
         'Биография',
         blank=True,
     )
-    confirmation_code = models.CharField(
-        auto_created=True,
-        max_length=50,
-        default=uuid4(),
-    )
 
-    def get_confirmation_code(self) -> str:
-        return self.confirmation_code
+    def get_email(self) -> str:
+        return self.email
 
     def is_admin(self) -> bool:
         return self.role == ADMIN
