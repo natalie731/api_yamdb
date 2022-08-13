@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from api.utils import get_tokens_for_user
 from .models import User
 
 
@@ -11,10 +10,9 @@ class UserAdmin(admin.ModelAdmin):
                     'is_active', 'date_joined')
     search_fields = ('username',)
     empty_value_display = '-пусто-'
-
-    def save_model(self, request, obj, form, change):
-        obj.save()
-        get_tokens_for_user(obj)
+    exclude = ('is_staff', 'groups',
+               'user_permissions', 'last_login')
+    readonly_fields = ('date_joined', 'is_active',)
 
 
 admin.site.register(User, UserAdmin)

@@ -1,11 +1,13 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
+    title = SlugRelatedField(slug_field='name', read_only=True)
 
     class Meta:
         fields = '__all__'
@@ -14,20 +16,42 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
+    review = SlugRelatedField(slug_field='name', read_only=True)
 
     class Meta:
         fields = '__all__'
         model = Comment
 
 
-class AuthSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     """
-    Сериализатор для аутентификации пользователя.
+    Сериализатор пользователей.
     """
 
     class Meta:
-        fields = ('username', 'email',)
         model = User
+        fields = ('username', 'email',
+                  'first_name', 'last_name',
+                  'bio', 'role',)
+
+    def validate_username(self, data):
+        if data == 'me':
+            raise serializers.ValidationError(
+                'Измените имя пользователя.'
+            )
+        return data
+
+
+class AuthSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор расширенный для аутентификации.
+    """
+    email = serializers.EmailField()
+    username = serializers.CharField()
+
+    class Meta:
+        model = User
+        fields = ('username', 'email',)
 
     def validate_username(self, data):
         if data == 'me':
@@ -43,18 +67,6 @@ class TokenSerializer(serializers.Serializer):
     """
     username = serializers.CharField()
     confirmation_code = serializers.CharField()
-
-
-class UserSerializer(AuthSerializer):
-    """
-    Сериализатор расширенный для пользователя.
-    """
-
-    class Meta:
-        model = User
-        fields = ('username', 'email',
-                  'first_name', 'last_name',
-                  'bio', 'role',)
 
 
 class CategorySerializer(serializers.ModelSerializer):

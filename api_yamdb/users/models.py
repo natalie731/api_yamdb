@@ -1,13 +1,17 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from settings import ADMIN, MODERATOR, USER
+USER: str = 'user'
+MODERATOR: str = 'moderator'
+ADMIN: str = 'admin'
 
 
 class User(AbstractUser):
-    """Расширенная модель User.
+    """
+    Пользовательская модель User.
     Добавлены роли и пользовательские поля.
     Переопределены стандартные поля.
+    Добавлены пользовательские методы.
     """
 
     ROLE_CHOICES = (
@@ -37,9 +41,9 @@ class User(AbstractUser):
         'Биография',
         blank=True,
     )
-
-    def get_email(self) -> str:
-        return self.email
+    # is_active = models.BooleanField(
+    #     default=False,
+    # )
 
     def is_admin(self) -> bool:
         return self.role == ADMIN
@@ -49,4 +53,3 @@ class User(AbstractUser):
 
     def __str__(self) -> str:
         return self.username
-
