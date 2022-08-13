@@ -16,5 +16,6 @@ class UserAdmin(admin.ModelAdmin):
     readonly_fields = ('date_joined', 'is_activate',)
 
 
+
 admin.site.register(User, UserAdmin)
 admin.site.unregister(Group)
