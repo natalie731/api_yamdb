@@ -79,9 +79,9 @@ class Review(models.Model):
         verbose_name='Автор'
     )
 
-    score = models.FloatField(
-        validators=[MinValueValidator(0.0),
-                    MaxValueValidator(10.0)],
+    score = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0),
+                    MaxValueValidator(10)],
         verbose_name='Рейтинг'
     )
 
