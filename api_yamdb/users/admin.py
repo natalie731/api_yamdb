@@ -10,6 +10,9 @@ class UserAdmin(admin.ModelAdmin):
                     'is_active', 'date_joined')
     search_fields = ('username',)
     empty_value_display = '-пусто-'
+    exclude = ('is_staff', 'groups',
+               'user_permissions', 'last_login')
+    readonly_fields = ('date_joined', 'is_active',)
 
 
 admin.site.register(User, UserAdmin)

@@ -23,14 +23,16 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
 
 
-class AuthSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     """
-    Сериализатор для аутентификации пользователя.
+    Сериализатор пользователей.
     """
 
     class Meta:
-        fields = ('username', 'email',)
         model = User
+        fields = ('username', 'email',
+                  'first_name', 'last_name',
+                  'bio', 'role',)
 
     def validate_username(self, data):
         if data == 'me':
@@ -40,24 +42,24 @@ class AuthSerializer(serializers.ModelSerializer):
         return data
 
 
+class AuthSerializer(UserSerializer):
+    """
+    Сериализатор расширенный для аутентификации.
+    """
+    email = serializers.EmailField()
+    username = serializers.CharField()
+
+    class Meta:
+        model = User
+        fields = ('username', 'email',)
+
+
 class TokenSerializer(serializers.Serializer):
     """
     Сериализатор для выдачи токенов.
     """
     username = serializers.CharField()
     confirmation_code = serializers.CharField()
-
-
-class UserSerializer(AuthSerializer):
-    """
-    Сериализатор расширенный для пользователя.
-    """
-
-    class Meta:
-        model = User
-        fields = ('username', 'email',
-                  'first_name', 'last_name',
-                  'bio', 'role',)
 
 
 class CategorySerializer(serializers.ModelSerializer):

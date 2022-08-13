@@ -1,20 +1,20 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.db import DatabaseError
+from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
 
-from reviews.models import Category, Genre, Title, Review
+from reviews.models import Category, Genre, Review, Title
 from .permissions import AdminOrSuperUserOnly, IsAuthorModeratorAdminOrReadOnly
-from .serializers import (AuthSerializer, CategorySerializer, GenreSerializer,
+from .serializers import (AuthSerializer, CategorySerializer,
+                          CommentSerializer, GenreSerializer, ReviewSerializer,
                           TitleCreateSerializer, TitleListSerializer,
-                          TokenSerializer, UserSerializer, ReviewSerializer,
-                          CommentSerializer)
+                          TokenSerializer, UserSerializer)
 from .utils import get_tokens_for_user, new_user_get_email
 
 User = get_user_model()
@@ -31,11 +31,10 @@ class AuthViewSet(APIView):
                 user, created = User.objects.get_or_create(
                     username=serializer.validated_data['username'],
                     email=serializer.validated_data['email'],
-                    defaults={'is_active': False},
                 )
             except DatabaseError:
-                return Response({'messege': 'Что-то пошло не так. '
-                                'Повторите попытку регистрации.'},
+                return Response({'message': 'Что-то пошло не так. '
+                                'Измените регистрационные данные.'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
             confirmation_code = default_token_generator.make_token(user)
