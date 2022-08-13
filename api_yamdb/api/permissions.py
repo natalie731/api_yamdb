@@ -9,9 +9,6 @@ class AdminOrSuperUserOnly(permissions.BasePermission):
                     or request.user.is_superuser)
         return False
 
-    # def has_object_permission(self, request, view, obj):
-    #     return request.user.is_admin
-
 
 class AdminOrReadOnly(permissions.BasePermission):
 
@@ -37,4 +34,3 @@ class IsAuthorModeratorAdminOrReadOnly(permissions.BasePermission):
             or request.user.is_moderator()
             or request.method in permissions.SAFE_METHODS
         )
-

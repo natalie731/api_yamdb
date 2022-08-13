@@ -5,16 +5,15 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from reviews.models import Category, Genre, Title
-from .filters import TitlesFilter
 from reviews.models import Category, Genre, Review, Title
-from .permissions import AdminOrSuperUserOnly, IsAuthorModeratorAdminOrReadOnly, AdminOrReadOnly
+from .filters import TitlesFilter
+from .permissions import (AdminOrReadOnly, AdminOrSuperUserOnly,
+                          IsAuthorModeratorAdminOrReadOnly)
 from .serializers import (AuthSerializer, CategorySerializer,
                           CommentSerializer, GenreSerializer, ReviewSerializer,
                           TitleCreateSerializer, TitleListSerializer,
@@ -66,7 +65,7 @@ class TokenViewSet(APIView):
                     user=user,
                     token=valid_code
                 ):
-                    User.objects.filter(username=user).update(is_active=True)
+                    User.objects.filter(username=user).update(is_activate=True)
                     return Response(get_tokens_for_user(user),
                                     status=status.HTTP_200_OK)
                 return Response({
@@ -172,7 +171,6 @@ class GenreViewSet(viewsets.ModelViewSet):
         genre = get_object_or_404(Genre, slug=slug)
         genre.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
