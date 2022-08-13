@@ -1,7 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from settings import ADMIN, MODERATOR, USER
+USER: str = 'user'
+MODERATOR: str = 'moderator'
+ADMIN: str = 'admin'
 
 
 class User(AbstractUser):
@@ -39,9 +41,6 @@ class User(AbstractUser):
         'Биография',
         blank=True,
     )
-
-    def get_email(self) -> str:
-        return self.email
 
     def is_admin(self) -> bool:
         return self.role == ADMIN
