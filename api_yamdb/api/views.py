@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.db import DatabaseError
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -12,24 +13,32 @@ from .permissions import AdminOrSuperUserOnly
 from .serializers import (AuthSerializer, CategorySerializer, GenreSerializer,
                           TitleCreateSerializer, TitleListSerializer,
                           TokenSerializer, UserSerializer)
-from .utils import (get_tokens_for_user,
-                    new_user_get_confirmation_code_and_email)
+from .utils import get_tokens_for_user, new_user_get_email
 
 User = get_user_model()
 
 
 class AuthViewSet(APIView):
     """
-    Регистрация пользователя.
+    Регистрация пользователя POST.
     """
     def post(self, request):
         serializer = AuthSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(is_active=False)
-            user = User.objects.get(
-                username=serializer.validated_data['username']
-            )
-            new_user_get_confirmation_code_and_email(user)
+            try:
+                user, created = User.objects.get_or_create(
+                    username=serializer.validated_data['username'],
+                    email=serializer.validated_data['email'],
+                    defaults={'is_active': False},
+                )
+            except DatabaseError:
+                return Response({'messege': 'Что-то пошло не так. '
+                                'Повторите попытку регистрации.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            confirmation_code = default_token_generator.make_token(user)
+            new_user_get_email(user, confirmation_code)
+
             return Response(serializer.validated_data,
                             status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -37,13 +46,14 @@ class AuthViewSet(APIView):
 
 class TokenViewSet(APIView):
     """
-    Получение токена.
+    Получение токена POST.
     """
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
         if serializer.is_valid():
             valid_username = serializer.validated_data['username']
             valid_code = serializer.validated_data['confirmation_code']
+
             if User.objects.filter(username=valid_username).exists():
                 user = User.objects.get(username=valid_username)
 
@@ -61,6 +71,7 @@ class TokenViewSet(APIView):
             return Response({
                 'message': 'Пользователь не найден.'
             }, status=status.HTTP_404_NOT_FOUND)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -75,18 +86,11 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     lookup_field = 'username'
 
-    def perform_create(self, serializer):
-        """Переопределяем создание пользователя. Выдаем токен.
-        """
-        serializer.save()
-        user = User.objects.get(username=serializer.validated_data['username'])
-        get_tokens_for_user(user)
-
     @action(methods=['GET', 'PATCH'], detail=False,
             permission_classes=[IsAuthenticated])
     def me(self, request):
         """Добавляем пользовательскую страницу,
-        которую не генерирует роутер.
+        которую не создает router_v1.
         """
         user = self.request.user
         serializer = self.get_serializer(user)

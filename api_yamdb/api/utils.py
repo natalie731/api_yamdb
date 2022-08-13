@@ -1,32 +1,32 @@
-from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import BadHeaderError, send_mail
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
+from django.conf import settings
 
-from settings import FROM_EMAIL
+URL_POINT: str = settings.ALLOWED_HOSTS[0] + '/api/v1/auth/token/'
+FROM_EMAIL: str = 'from@example.com'
+SUBJECT: str = 'Получение токена на проекте YaMDB.'
+MESSAGE: str = ('{}, для получения токена '
+                f'пройдите по ссылке {URL_POINT} и введите '
+                'проверочный код: {}.')
+FROM_EMAIL: str = 'info@yambl.ru'
 
 
 def get_tokens_for_user(user):
     """Генерация токена."""
-    refresh = RefreshToken.for_user(user)
-    return {
-        'token': str(refresh.access_token),
-    }
+    access = AccessToken.for_user(user)
+    return {'token': str(access), }
 
 
-def new_user_get_confirmation_code_and_email(user):
-    """Получение проверочного кода и email."""
-    url_point = '.../api/v1/auth/token/'  # как чисто достать URL
-    confirmation_code = default_token_generator.make_token(user)
+def new_user_get_email(user, confirmation_code):
+    """Отправляем email пользователю."""
     try:
         send_mail(
-            'Получение токена на проекте YaMDB',
-            f'{user}, '
-            f'для получения токена пройдите по ссылке {url_point}. '
-            f'и введите проверочный код: {confirmation_code}.',
+            SUBJECT,
+            MESSAGE.format(user, confirmation_code),
             FROM_EMAIL,
-            [user.get_email()],
+            [user.email],
         )
     except BadHeaderError:
         return Response({
