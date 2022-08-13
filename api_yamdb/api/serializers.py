@@ -42,7 +42,7 @@ class UserSerializer(serializers.ModelSerializer):
         return data
 
 
-class AuthSerializer(UserSerializer):
+class AuthSerializer(serializers.ModelSerializer):
     """
     Сериализатор расширенный для аутентификации.
     """
@@ -52,6 +52,13 @@ class AuthSerializer(UserSerializer):
     class Meta:
         model = User
         fields = ('username', 'email',)
+
+    def validate_username(self, data):
+        if data == 'me':
+            raise serializers.ValidationError(
+                'Измените имя пользователя.'
+            )
+        return data
 
 
 class TokenSerializer(serializers.Serializer):
