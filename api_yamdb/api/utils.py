@@ -9,7 +9,7 @@ FROM_EMAIL: str = 'from@example.com'
 SUBJECT: str = 'Получение токена на проекте YaMDB.'
 MESSAGE: str = ('{}, для получения токена '
                 f'пройдите по ссылке {URL_POINT} и введите '
-                'проверочный код: {}.')
+                'проверочный код: {}')
 FROM_EMAIL: str = 'info@yambl.ru'
 
 

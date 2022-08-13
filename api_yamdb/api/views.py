@@ -62,7 +62,9 @@ class TokenViewSet(APIView):
                     user=user,
                     token=valid_code
                 ):
-                    User.objects.filter(username=user).update(is_active=True)
+                    User.objects.filter(username=user).update(
+                        is_activeted=True
+                    )
                     return Response(get_tokens_for_user(user),
                                     status=status.HTTP_200_OK)
                 return Response({
