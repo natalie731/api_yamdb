@@ -28,7 +28,7 @@
 - [Django] - веб-фреймворк на Python.
 - [Django REST framework] - инструментарий для создания веб-API.
 - [Simple JWT] - плагин аутентификации веб-токенов JSON для платформы Django REST
-
+- [Django-filter] - приложение для динамической фильтрации запросов из параметров URL
 
 ### Как запустить проект:
 
@@ -77,6 +77,7 @@ python manage.py runserver
    [Django REST framework]: <https://www.django-rest-framework.org/>
    [Django]: <https://www.djangoproject.com/>
    [Simple JWT]: <https://pypi.org/project/djangorestframework-simplejwt/>
+   [Django-filter]: <https://pypi.org/project/django-filter/2.4.0/>
 
    [Наталья Банникова]: <https://github.com/natalie731>
    [Алексей Дубинин]: <https://github.com/devdub>
