@@ -4,12 +4,21 @@ from django.db import models
 
 from django.contrib.auth import get_user_model
 
+from reviews.validators import validate_year
+
 User = get_user_model()
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=256, verbose_name='Название жанра')
-    slug = models.SlugField(unique=True, verbose_name='Слаг жанра')
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Название жанра'
+        )
+    slug = models.SlugField(
+        unique=True,
+        max_length=50,
+        verbose_name='Слаг жанра'
+        )
 
     class Meta:
         ordering = ['-id']
@@ -21,8 +30,15 @@ class Genre(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=256, verbose_name='Название категории')
-    slug = models.SlugField(unique=True, verbose_name='Слаг категории')
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Название категории'
+        )
+    slug = models.SlugField(
+        unique=True,
+        max_length=50,
+        verbose_name='Слаг категории'
+        )
 
     class Meta:
         ordering = ['-id']
@@ -37,8 +53,13 @@ class Title(models.Model):
     name = models.TextField(
         max_length=256,
         verbose_name='Навзвание произведения'
-    )
-    year = models.SmallIntegerField(verbose_name='Год создания произведения')
+        )
+
+    year = models.SmallIntegerField(
+        verbose_name='Год создания произведения',
+        validators=[validate_year]
+        )
+
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -46,9 +67,18 @@ class Title(models.Model):
         blank=True,
         null=True,
         verbose_name='Категория'
-    )
-    description = models.TextField('Описание')
-    genre = models.ManyToManyField(Genre, verbose_name='Жанр')
+        )
+
+    description = models.TextField(
+        verbose_name='Описание',
+        null=True,
+        blank=True
+        )
+
+    genre = models.ManyToManyField(
+        Genre,
+        verbose_name='Жанр'
+        )
 
     class Meta:
         ordering = ['-id']
@@ -57,6 +87,7 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
+
 
 
 class Review(models.Model):

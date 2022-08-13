@@ -13,7 +13,9 @@ class AdminOrSuperUserOnly(permissions.BasePermission):
 
 
 class AdminOrReadOnly(permissions.BasePermission):
+
     def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS or request.user.is_admin
-        )
+        return (request.method in permissions.SAFE_METHODS
+                or (request.user.is_authenticated and (
+                    request.user.role == 'admin' or request.user.is_superuser))
+                )
