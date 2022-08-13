@@ -7,6 +7,7 @@ from users.models import User
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
+    title = SlugRelatedField(slug_field='name', read_only=True)
 
     class Meta:
         fields = '__all__'
@@ -15,6 +16,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
+    review = SlugRelatedField(slug_field='name', read_only=True)
 
     class Meta:
         fields = '__all__'
