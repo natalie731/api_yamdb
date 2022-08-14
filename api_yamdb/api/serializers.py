@@ -1,3 +1,7 @@
+import statistics
+from statistics import mean
+from django.db.models import Avg
+
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from django.shortcuts import get_object_or_404
@@ -123,8 +127,16 @@ class TitleListSerializer(serializers.ModelSerializer):
     """
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    # rating
+    rating = serializers.SerializerMethodField()
 
     class Meta:
-        fields = '__all__'
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
         model = Title
+
+    def get_rating(self, obj):
+        rating = obj.reviews.aggregate(Avg('score'))
+        return rating.get('score__avg')
+
+        # title_id = self.context.get('view').kwargs.get('title_id')
+        # title = get_object_or_404(Title, pk=title_id)
+        # return statistics.mean(Review.objects.filter(title=title).values('score'))
