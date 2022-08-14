@@ -13,13 +13,11 @@ class User(AbstractUser):
     Переопределены стандартные поля.
     Добавлены пользовательские методы.
     """
-
     ROLE_CHOICES = (
         (ADMIN, 'Администратор'),
         (MODERATOR, 'Модератор'),
         (USER, 'Пользователь'),
     )
-
     first_name = models.CharField(
         'Имя пользователя',
         max_length=150,
@@ -42,8 +40,13 @@ class User(AbstractUser):
         blank=True,
     )
     is_activate = models.BooleanField(
+        'Получение токена',
         default=False,
     )
+
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
 
     def is_admin(self) -> bool:
         return self.role == ADMIN

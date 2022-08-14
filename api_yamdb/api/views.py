@@ -18,7 +18,7 @@ from .serializers import (AuthSerializer, CategorySerializer,
                           CommentSerializer, GenreSerializer, ReviewSerializer,
                           TitleCreateSerializer, TitleListSerializer,
                           TokenSerializer, UserSerializer)
-from .utils import get_tokens_for_user, new_user_get_email
+from .utils import get_tokens_for_user, user_get_email
 
 User = get_user_model()
 
@@ -41,7 +41,7 @@ class AuthViewSet(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
             confirmation_code = default_token_generator.make_token(user)
-            new_user_get_email(user, confirmation_code)
+            user_get_email(user, confirmation_code)
 
             return Response(serializer.validated_data,
                             status=status.HTTP_200_OK)
@@ -187,10 +187,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
-        # if serializer.is_valid():
-        #     serializer.save(author=self.request.user, title=title)
-        #     return Response(status=status.HTTP_204_NO_CONTENT)
-        # return Response(serializer.error)
         serializer.save(author=self.request.user, title=title)
 
 
@@ -206,7 +202,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         return review.comments.all()
 
     def perform_create(self, serializer):
-        # title_id = self.kwargs.get('title_id')
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id)
         serializer.save(author=self.request.user, reviews=review)

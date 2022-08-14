@@ -1,11 +1,8 @@
-import statistics
-from statistics import mean
 from django.db.models import Avg
-
-from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
 from django.shortcuts import get_object_or_404
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
@@ -13,10 +10,8 @@ from users.models import User
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    # title = SlugRelatedField(slug_field='name', read_only=True)
 
     def validate(self, data):
-        # print(self.context['view'].kwargs)
         request = self.context['request']
         author = request.user
         title_id = self.context['view'].kwargs.get('title_id')
@@ -34,7 +29,6 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    # review = SlugRelatedField(slug_field='name', read_only=True)
 
     class Meta:
         fields = ("id", "text", "author", "pub_date")
@@ -130,13 +124,10 @@ class TitleListSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'genre', 'category')
         model = Title
 
     def get_rating(self, obj):
         rating = obj.reviews.aggregate(Avg('score'))
         return rating.get('score__avg')
-
-        # title_id = self.context.get('view').kwargs.get('title_id')
-        # title = get_object_or_404(Title, pk=title_id)
-        # return statistics.mean(Review.objects.filter(title=title).values('score'))
