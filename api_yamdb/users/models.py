@@ -41,6 +41,9 @@ class User(AbstractUser):
         'Биография',
         blank=True,
     )
+    is_activate = models.BooleanField(
+        default=False,
+    )
 
     def is_admin(self) -> bool:
         return self.role == ADMIN

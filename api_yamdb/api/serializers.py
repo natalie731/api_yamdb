@@ -9,9 +9,10 @@ from users.models import User
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    title = SlugRelatedField(slug_field='name', read_only=True)
+    # title = SlugRelatedField(slug_field='name', read_only=True)
 
     def validate(self, data):
+        # print(self.context['view'].kwargs)
         request = self.context['request']
         author = request.user
         title_id = self.context['view'].kwargs.get('title_id')
@@ -19,31 +20,34 @@ class ReviewSerializer(serializers.ModelSerializer):
         if request.method == 'POST':
             if Review.objects.filter(title=title, author=author).exists():
                 raise ValidationError('Вы можете добавить только один'
-                                      'отзыв к произведению')
+                                      ' отзыв к произведению')
         return data
 
     class Meta:
-        fields = '__all__'
+        fields = ("id", "text", "author", "score", "pub_date")
         model = Review
 
 
 class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    review = SlugRelatedField(slug_field='name', read_only=True)
+    # review = SlugRelatedField(slug_field='name', read_only=True)
 
     class Meta:
-        fields = '__all__'
+        fields = ("id", "text", "author", "pub_date")
         model = Comment
+        read_only_fields = ("reviews",)
 
 
-class AuthSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     """
-    Сериализатор для аутентификации пользователя.
+    Сериализатор пользователей.
     """
 
     class Meta:
-        fields = ('username', 'email',)
         model = User
+        fields = ('username', 'email',
+                  'first_name', 'last_name',
+                  'bio', 'role',)
 
     def validate_username(self, data):
         if data == 'me':
@@ -51,6 +55,18 @@ class AuthSerializer(serializers.ModelSerializer):
                 'Измените имя пользователя.'
             )
         return data
+
+
+class AuthSerializer(UserSerializer):
+    """
+    Сериализатор расширенный для аутентификации.
+    """
+    email = serializers.EmailField()
+    username = serializers.CharField()
+
+    class Meta:
+        model = User
+        fields = ('username', 'email',)
 
 
 class TokenSerializer(serializers.Serializer):
@@ -61,18 +77,6 @@ class TokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField()
 
 
-class UserSerializer(AuthSerializer):
-    """
-    Сериализатор расширенный для пользователя.
-    """
-
-    class Meta:
-        model = User
-        fields = ('username', 'email',
-                  'first_name', 'last_name',
-                  'bio', 'role',)
-
-
 class CategorySerializer(serializers.ModelSerializer):
     """
     Сериализатор категорий
@@ -81,6 +85,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug',)
         model = Category
+        lookup_field = 'slug'
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -121,6 +126,5 @@ class TitleListSerializer(serializers.ModelSerializer):
     # rating
 
     class Meta:
-        fields = ('id', 'name', 'year',
-                  'description', 'genre', 'category')
+        fields = '__all__'
         model = Title

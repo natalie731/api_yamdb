@@ -1,16 +1,16 @@
+from django.conf import settings
 from django.core.mail import BadHeaderError, send_mail
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from django.conf import settings
 
 URL_POINT: str = settings.ALLOWED_HOSTS[0] + '/api/v1/auth/token/'
 FROM_EMAIL: str = 'from@example.com'
 SUBJECT: str = 'Получение токена на проекте YaMDB.'
 MESSAGE: str = ('{}, для получения токена '
                 f'пройдите по ссылке {URL_POINT} и введите '
-                'проверочный код: {}.')
-FROM_EMAIL: str = 'info@yambl.ru'
+                'проверочный код: {}')
+# FROM_EMAIL: str = 'info@yambl.ru'
 
 
 def get_tokens_for_user(user):
