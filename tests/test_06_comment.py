@@ -215,7 +215,8 @@ class Test06CommentAPI:
         response = client_user.patch(pre_url, data=data)
         assert response.status_code == 403, (
             f'Проверьте, что при PATCH запросе `/api/v1/titles/{{title_id}}/reviews/{{review_id}}/` '
-            f'с токеном авторизации {user_name} возвращается статус 403'
+            f'с токеном авторизации {user_name} возвращается статус 403'    @pytest.mark.django_db(transaction=True)
+
         )
         response = client_user.delete(pre_url)
         assert response.status_code == 403, (
@@ -223,7 +224,6 @@ class Test06CommentAPI:
             f'с токеном авторизации {user_name} возвращается статус 403'
         )
 
-    @pytest.mark.django_db(transaction=True)
     def test_04_comment_check_permission(self, client, admin_client, admin):
         comments, reviews, titles, user, moderator = create_comments(admin_client, admin)
         pre_url = f'/api/v1/titles/{titles[0]["id"]}/reviews/{reviews[0]["id"]}/comments/'
