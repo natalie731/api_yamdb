@@ -133,8 +133,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=['delete'],
             url_path=r'(?P<slug>[-\w]+)',
-            permission_classes=(AdminOrSuperUserOnly,)
-            )
+            permission_classes=(AdminOrSuperUserOnly,))
     def slug(self, request, slug):
         category = get_object_or_404(Category, slug=slug)
         category.delete()
@@ -155,8 +154,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=['delete'],
             url_path=r'(?P<slug>[-\w]+)',
-            permission_classes=(AdminOrSuperUserOnly,)
-            )
+            permission_classes=(AdminOrSuperUserOnly,))
     def slug(self, request, slug):
         genre = get_object_or_404(Genre, slug=slug)
         genre.delete()

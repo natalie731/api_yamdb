@@ -19,7 +19,7 @@ class Genre(models.Model):
     )
 
     class Meta:
-        ordering = ['-id']
+        ordering = ('-id',)
         verbose_name = "Жанр"
         verbose_name_plural = "Жанры"
 
@@ -39,7 +39,7 @@ class Category(models.Model):
     )
 
     class Meta:
-        ordering = ['-id']
+        ordering = ('-id',)
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
 
@@ -79,7 +79,7 @@ class Title(models.Model):
     )
 
     class Meta:
-        ordering = ['-id']
+        ordering = ('-id',)
         verbose_name = "Произведние"
         verbose_name_plural = "Произведния"
 
