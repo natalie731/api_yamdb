@@ -3,13 +3,19 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.relations import SlugRelatedField
+from rest_framework.validators import UniqueValidator
 
+from core.validators import UserRegexValidator, validate_username
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
+
+    class Meta:
+        model = Review
+        exclude = ('title',)
 
     def validate(self, data):
         request = self.context['request']
@@ -22,54 +28,37 @@ class ReviewSerializer(serializers.ModelSerializer):
                                       ' отзыв к произведению')
         return data
 
-    class Meta:
-        fields = ("id", "text", "author", "score", "pub_date")
-        model = Review
-
 
 class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
-        fields = ("id", "text", "author", "pub_date")
         model = Comment
-        read_only_fields = ("reviews",)
+        exclude = ("review",)
+        read_only_fields = ("review",)
 
 
 class UserSerializer(serializers.ModelSerializer):
     """
-    Сериализатор пользователей.
+    Сериалайзер пользователей.
     """
+    username = serializers.CharField(
+        validators=[validate_username,
+                    UniqueValidator(queryset=User.objects.all()),
+                    UserRegexValidator]
+    )
 
     class Meta:
         model = User
         fields = ('username', 'email',
                   'first_name', 'last_name',
                   'bio', 'role',)
-
-    def validate_username(self, data):
-        if data == 'me':
-            raise serializers.ValidationError(
-                'Измените имя пользователя.'
-            )
-        return data
-
-
-class AuthSerializer(UserSerializer):
-    """
-    Сериализатор расширенный для аутентификации.
-    """
-    email = serializers.EmailField()
-    username = serializers.CharField()
-
-    class Meta:
-        model = User
-        fields = ('username', 'email',)
+        read_only_field = ('role',)
 
 
 class TokenSerializer(serializers.Serializer):
     """
-    Сериализатор для выдачи токенов.
+    Сериалайзер для выдачи токенов.
     """
     username = serializers.CharField()
     confirmation_code = serializers.CharField()

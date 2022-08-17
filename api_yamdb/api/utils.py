@@ -4,27 +4,26 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
-URL_POINT: str = settings.ALLOWED_HOSTS[0] + '/api/v1/auth/token/'
-FROM_EMAIL: str = 'info@yambl.ru'
+URL_POINT: str = f'{settings.ALLOWED_HOSTS[0]}/api/v1/auth/token/'
 SUBJECT: str = 'Получение токена на проекте YaMDB.'
 MESSAGE: str = ('{}, для получения токена '
                 f'пройдите по ссылке {URL_POINT} и введите '
                 'проверочный код: {}')
 
 
-def get_tokens_for_user(user):
+def get_token_for_user(user):
     """Генерация токена."""
     access = AccessToken.for_user(user)
     return {'token': str(access), }
 
 
-def user_get_email(user, confirmation_code):
+def send_email_for_user(user, confirmation_code):
     """Отправляем email пользователю."""
     try:
         send_mail(
             SUBJECT,
             MESSAGE.format(user, confirmation_code),
-            FROM_EMAIL,
+            settings.FROM_EMAIL,
             [user.email],
         )
     except BadHeaderError:

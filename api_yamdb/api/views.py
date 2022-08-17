@@ -14,11 +14,11 @@ from reviews.models import Category, Genre, Review, Title
 from .filters import TitlesFilter
 from .permissions import (AdminOrReadOnly, AdminOrSuperUserOnly,
                           IsAuthorModeratorAdminOrReadOnly)
-from .serializers import (AuthSerializer, CategorySerializer,
-                          CommentSerializer, GenreSerializer, ReviewSerializer,
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
                           TitleCreateSerializer, TitleListSerializer,
                           TokenSerializer, UserSerializer)
-from .utils import get_tokens_for_user, user_get_email
+from .utils import get_token_for_user, send_email_for_user
 
 User = get_user_model()
 
@@ -28,24 +28,23 @@ class AuthViewSet(APIView):
     Регистрация пользователя POST.
     """
     def post(self, request):
-        serializer = AuthSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                user, created = User.objects.get_or_create(
-                    username=serializer.validated_data['username'],
-                    email=serializer.validated_data['email'],
-                )
-            except DatabaseError:
-                return Response({'message': 'Что-то пошло не так. '
-                                'Измените регистрационные данные.'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            confirmation_code = default_token_generator.make_token(user)
-            user_get_email(user, confirmation_code)
-
-            return Response(serializer.validated_data,
-                            status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user, _ = User.objects.get_or_create(
+                username=serializer.validated_data['username'],
+                email=serializer.validated_data['email'],
+            )
+        except DatabaseError:
+            return Response({'message': 'Что-то пошло не так. '
+                            'Измените регистрационные данные.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        confirmation_code = default_token_generator.make_token(user)
+        send_email_for_user(user, confirmation_code)
+        return Response(serializer.validated_data,
+                        status=status.HTTP_200_OK)
 
 
 class TokenViewSet(APIView):
@@ -54,29 +53,23 @@ class TokenViewSet(APIView):
     """
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
-        if serializer.is_valid():
-            valid_username = serializer.validated_data['username']
-            valid_code = serializer.validated_data['confirmation_code']
+        if not serializer.is_valid():
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        valid_username = serializer.validated_data['username']
+        valid_code = serializer.validated_data['confirmation_code']
 
-            if User.objects.filter(username=valid_username).exists():
-                user = User.objects.get(username=valid_username)
+        if not User.objects.filter(username=valid_username).exists():
+            return Response({'message': 'Пользователь не найден.'},
+                            status=status.HTTP_404_NOT_FOUND)
+        user = User.objects.get(username=valid_username)
 
-                if default_token_generator.check_token(
-                    user=user,
-                    token=valid_code
-                ):
-                    User.objects.filter(username=user).update(is_activate=True)
-                    return Response(get_tokens_for_user(user),
-                                    status=status.HTTP_200_OK)
-                return Response({
-                    'message': 'Проверочный код не действителен.'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            return Response({
-                'message': 'Пользователь не найден.'
-            }, status=status.HTTP_404_NOT_FOUND)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not default_token_generator.check_token(user=user,
+                                                   token=valid_code):
+            return Response({'message': 'Проверочный код не действителен.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        User.objects.filter(username=user).update(is_activate=True)
+        return Response(get_token_for_user(user), status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -98,18 +91,15 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         user = self.request.user
         serializer = self.get_serializer(user)
-        if self.request.method == 'PATCH':
-            serializer = self.get_serializer(user,
-                                             data=request.data,
-                                             partial=True)
-            if serializer.is_valid():
-                serializer.save(role=user.role)
-                return Response(serializer.data,
-                                status=status.HTTP_200_OK)
+        if self.request.method != 'PATCH':
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(user, data=request.data,
+                                         partial=True)
+        if not serializer.is_valid():
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.data,
-                        status=status.HTTP_200_OK)
+        serializer.save(role=user.role)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
@@ -204,4 +194,4 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id)
-        serializer.save(author=self.request.user, reviews=review)
+        serializer.save(author=self.request.user, review=review)
