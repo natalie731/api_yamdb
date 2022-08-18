@@ -59,6 +59,12 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
+Для загрузки csv из папки /static/data/ в базу:
+
+```
+python manage.py fillbase
+```
+
 Запустить проект:
 
 ```
