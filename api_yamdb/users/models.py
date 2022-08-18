@@ -3,6 +3,7 @@ from django.db import models
 
 from core.validators import UserRegexValidator, validate_username
 
+
 USER: str = 'user'
 MODERATOR: str = 'moderator'
 ADMIN: str = 'admin'
@@ -33,7 +34,6 @@ class User(AbstractUser):
     )
     email = models.EmailField(
         'email',
-        blank=False,
         unique=True,
     )
     role = models.CharField(
@@ -41,15 +41,10 @@ class User(AbstractUser):
         max_length=10,
         choices=ROLE_CHOICES,
         default=USER,
-        blank=False,
     )
     bio = models.TextField(
         'Биография',
         blank=True,
-    )
-    is_activate = models.BooleanField(
-        'Получение токена',
-        default=False,
     )
 
     class Meta:

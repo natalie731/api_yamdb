@@ -14,7 +14,7 @@ from reviews.models import Category, Genre, Review, Title
 from .filters import TitlesFilter
 from .permissions import (AdminOrReadOnly, AdminOrSuperUserOnly,
                           IsAuthorModeratorAdminOrReadOnly)
-from .serializers import (CategorySerializer, CommentSerializer,
+from .serializers import (RegisterSerializer, CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleCreateSerializer, TitleListSerializer,
                           TokenSerializer, UserSerializer)
@@ -23,12 +23,12 @@ from .utils import get_token_for_user, send_email_for_user
 User = get_user_model()
 
 
-class AuthViewSet(APIView):
+class RegisterViewSet(APIView):
     """
     Регистрация пользователя POST.
     """
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = RegisterSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
@@ -38,8 +38,9 @@ class AuthViewSet(APIView):
                 email=serializer.validated_data['email'],
             )
         except DatabaseError:
-            return Response({'message': 'Что-то пошло не так. '
-                            'Измените регистрационные данные.'},
+            return Response({'message': 'Пользователь с такими '
+                             'данными уже существует. '
+                             'Измените регистрационные данные.'},
                             status=status.HTTP_400_BAD_REQUEST)
         confirmation_code = default_token_generator.make_token(user)
         send_email_for_user(user, confirmation_code)
@@ -68,7 +69,6 @@ class TokenViewSet(APIView):
                                                    token=valid_code):
             return Response({'message': 'Проверочный код не действителен.'},
                             status=status.HTTP_400_BAD_REQUEST)
-        User.objects.filter(username=user).update(is_activate=True)
         return Response(get_token_for_user(user), status=status.HTTP_200_OK)
 
 

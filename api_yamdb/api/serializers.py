@@ -56,12 +56,45 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_field = ('role',)
 
 
+class RegisterSerializer(serializers.Serializer):
+    """
+    Сериалайзер регистрации.
+    """
+    username = serializers.CharField(
+        validators=[validate_username,
+                    UserRegexValidator]
+    )
+    email = serializers.EmailField()
+
+    class Meta:
+        model = User
+        fields = ('username', 'email',)
+
+
 class TokenSerializer(serializers.Serializer):
     """
     Сериалайзер для выдачи токенов.
     """
     username = serializers.CharField()
     confirmation_code = serializers.CharField()
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    Сериалайзер пользователей.
+    """
+    username = serializers.CharField(
+        validators=[validate_username,
+                    UniqueValidator(queryset=User.objects.all()),
+                    UserRegexValidator]
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'email',
+                  'first_name', 'last_name',
+                  'bio', 'role',)
+        read_only_field = ('role',)
 
 
 class CategorySerializer(serializers.ModelSerializer):

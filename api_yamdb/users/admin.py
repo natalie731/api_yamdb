@@ -7,13 +7,12 @@ from .models import User
 class UserAdmin(admin.ModelAdmin):
     list_display = ('pk', 'username', 'role',
                     'email', 'first_name',
-                    'last_name', 'date_joined',
-                    'is_activate')
+                    'last_name', 'date_joined',)
     search_fields = ('username',)
     empty_value_display = '-пусто-'
-    exclude = ('is_staff', 'groups', 'is_active',
-               'user_permissions', 'last_login')
-    readonly_fields = ('date_joined', 'is_activate',)
+    exclude = ('is_staff', 'groups',
+               'user_permissions', 'last_login',)
+    readonly_fields = ('date_joined',)
 
 
 admin.site.register(User, UserAdmin)
