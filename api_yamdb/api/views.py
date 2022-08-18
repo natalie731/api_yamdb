@@ -14,10 +14,10 @@ from reviews.models import Category, Genre, Review, Title
 from .filters import TitlesFilter
 from .permissions import (AdminOrReadOnly, AdminOrSuperUserOnly,
                           IsAuthorModeratorAdminOrReadOnly)
-from .serializers import (RegisterSerializer, CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer,
-                          TitleCreateSerializer, TitleListSerializer,
-                          TokenSerializer, UserSerializer)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, RegisterSerializer,
+                          ReviewSerializer, TitleCreateSerializer,
+                          TitleListSerializer, TokenSerializer, UserSerializer)
 from .utils import get_token_for_user, send_email_for_user
 
 User = get_user_model()

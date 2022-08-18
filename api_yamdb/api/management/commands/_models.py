@@ -67,7 +67,9 @@ class File():
             count = self.save_by_simple_rows(rows, field_name)
             print(self.MESSAGE_SUCCESS.format(self.file_name, count))
 
-    def open_read_save_file_for_ralated_table(self, unrecorded_files) -> List[str]:
+    def open_read_save_file_for_ralated_table(self,
+                                              unrecorded_files
+                                              ) -> List[str]:
         """Открыть файл и записать его в таблицу
         Args:
             unrecorded_files (list): Пустой список
@@ -124,8 +126,9 @@ class File():
             record_flag = True
             values_for_save = (
                 self.save_by_rows_related_from_another_table(
-                dict(zip(field_name, row))
-            ))
+                    dict(zip(field_name, row))
+                )
+            )
             try:
                 data = self.get_table(**values_for_save)
             except ValueError:

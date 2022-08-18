@@ -1,9 +1,9 @@
 import os
-from typing import Dict, List
+from typing import Dict
 
 from django.core.management.base import BaseCommand, CommandError
 
-from ._models import File, PATH, FILE_EXT, APPS_MODELS
+from ._models import APPS_MODELS, FILE_EXT, PATH, File
 
 MESSAGE_VALUE_ERROR: str = ('В папке {} есть файлы - {}, '
                             'для которых нет таблиц. '
@@ -82,13 +82,22 @@ class Command(BaseCommand):
             file.open_read_save_file_for_simple_table()
 
     def save_files_with_related(self, related_files) -> None:
+        """Установка созависимых таблиц, не имеющих связей.
+        Args:
+            related_files (list): Список с названиями зависимых таблиц.
+        Raises:
+            Exception: Таблица не может быть установлена по причине
+            ошибки оператора. Не существует данных для связи.
+        """
         start_round_flag = True
         while start_round_flag:
             unrecorded_files = []
             for file_name in related_files:
                 file = File(file_name)
                 unrecorded_files: dict = (
-                    file.open_read_save_file_for_ralated_table(unrecorded_files)
+                    file.open_read_save_file_for_ralated_table(
+                        unrecorded_files
+                    )
                 )
             if len(unrecorded_files):
                 if related_files == unrecorded_files:
